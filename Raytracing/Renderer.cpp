@@ -1,6 +1,19 @@
 #include "Renderer.h"
 #include <Walnut/Random.h>
 
+namespace Utils {
+	static uint32_t ConvertToRGBA(const glm::vec4& color) {
+		uint8_t r = (uint8_t)(color.r * 255.0f);
+		uint8_t g = (uint8_t)(color.g * 255.0f);
+		uint8_t b = (uint8_t)(color.b * 255.0f);
+		uint8_t a = (uint8_t)(color.a * 255.0f);
+
+		uint32_t result = (a << 24) | (b << 16) | (g << 8) | r;
+
+		return result;
+	}
+}
+
 void Renderer::OnResize(uint32_t width, uint32_t height)
 {
 	if (!_finalImage) {
@@ -28,19 +41,22 @@ void Renderer::Render()
 
 			coord = coord * 2.0f - 1.0f; //-1 to 1
 
-			_imageData[x + y * _finalImage->GetWidth()] = PerPixel(coord);
+			glm::vec4 color = PerPixel(coord);
+			color = glm::clamp(color, glm::vec4(0.0f), glm::vec4(1.0f));
+
+			_imageData[x + y * _finalImage->GetWidth()] = Utils::ConvertToRGBA(color);
 		}
 	}
 
 	_finalImage->SetData(_imageData);
 }
 
-uint32_t Renderer::PerPixel(glm::vec2 coord)
+glm::vec4 Renderer::PerPixel(glm::vec2 coord)
 {
 	glm::vec3 rayDirection(coord.x, coord.y, -1.0f);
 	//rayDirection = glm::normalize(rayDirection);
 
-	glm::vec3 rayOrigin(0.0f, 0.0f, -3.0f);
+	glm::vec3 rayOrigin(0.0f, 0.0f, 1.0f);
 
 	float radius = 0.5f;
 
@@ -64,30 +80,29 @@ uint32_t Renderer::PerPixel(glm::vec2 coord)
 	//b^2 - 4ac
 	float discriminant = b * b - 4.0f * a * c;
 
-	//greater than 0 means there is atleast 1 solution
-	if (discriminant >= 0.0f) {
-		float sqrt = sqrtf(discriminant);
-		float bs = 2.0f * a;
 
-		float t[2];
-		t[0] = (-b + sqrt) / bs;
-		t[1] = (-b - sqrt) / bs;
+	//(-b +- sqrt(discriminant)) / 2a
 
-		for (int i = 0; i < 2; i++) {
-			glm::vec3 hitPos = rayOrigin + rayDirection * t[i];
-			glm::vec3 normal = hitPos - glm::vec3(0.0f);
-			normal = glm::normalize(normal);
-
-			uint8_t g = (hitPos.z * 255.0f);
-			uint8_t r = (normal.x * 255.0f);
-			return 0xff000000 | (g << 8) | r;
-		}
-
-	}
-	else
-	{
-		return 0x00000000;
+	//less than zero is black
+	if (discriminant < 0.0f) {
+		return glm::vec4(0, 0, 0, 1);
 	}
 
-	return 0xffff00ff;
+	//Two quadratic solutions
+	float t0 = (-b + glm::sqrt(discriminant)) / (2.0f * a);
+	float t1 = (-b - glm::sqrt(discriminant)) / (2.0f * a);
+
+	//glm::vec3 h0 = rayOrigin + rayDirection * t0;
+	glm::vec3 h1 = rayOrigin + rayDirection * t1;
+
+	glm::vec3 normal = glm::normalize(h1);
+
+	glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
+
+	float d = glm::max(glm::dot(normal, -lightDir), 0.0f); // == cos(angle)
+
+	glm::vec3 spherecolor(1, 0, 1);
+	spherecolor *= d;
+
+	return glm::vec4(spherecolor, 1.0f);
 }
