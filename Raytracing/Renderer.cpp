@@ -85,7 +85,7 @@ glm::vec4 Renderer::PerPixel(glm::vec2 coord)
 
 	//less than zero is black
 	if (discriminant < 0.0f) {
-		return glm::vec4(0, 0, 0, 1);
+		return glm::vec4(0.5, 0.7, 0.9, 1);
 	}
 
 	//Two quadratic solutions
@@ -97,7 +97,7 @@ glm::vec4 Renderer::PerPixel(glm::vec2 coord)
 
 	glm::vec3 normal = glm::normalize(h1);
 
-	glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
+	glm::vec3 lightDir = _lightDir;
 
 	float d = glm::max(glm::dot(normal, -lightDir), 0.0f); // == cos(angle)
 

@@ -15,9 +15,19 @@ public:
 	{
 		ImGui::Begin("Settings");
 		ImGui::Text("Last render: %.3fms", _lastRenderTime);
-		//if (ImGui::Button("Render")) {
-		//	
-		//}
+
+		glm::vec3 lightDir = _renderer.GetLightDir();
+		float ld[3]{ lightDir.x, lightDir.y, lightDir.z };
+		
+
+		ImGui::SliderFloat3("Light Direction", ld, -1.0f, 1.0f, "%.3f", 1.f);
+
+		lightDir.x = ld[0];
+		lightDir.y = ld[1];
+		lightDir.z = ld[2];
+
+		_renderer.SetLightDir(lightDir);
+
 		ImGui::End();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
