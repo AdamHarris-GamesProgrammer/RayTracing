@@ -5,6 +5,9 @@
 #include <memory>
 
 
+#include "Ray.h"
+
+
 
 class Renderer
 {
@@ -12,7 +15,7 @@ public:
 	Renderer() = default;
 
 	void OnResize(uint32_t width, uint32_t height);
-	void Render();
+	void Render(const class Camera& camera);
 
 	glm::vec3 GetLightDir() const { return _lightDir; }
 	void SetLightDir(glm::vec3 newDir) { _lightDir = newDir; }
@@ -20,7 +23,7 @@ public:
 	std::shared_ptr<Walnut::Image> GetFinalImage() const { return _finalImage; }
 
 private:
-	glm::vec4 PerPixel(glm::vec2 coord);
+	glm::vec4 TraceRay(const Ray& ray);
 
 
 private:
