@@ -24,16 +24,12 @@ void Renderer::Render()
 	//Render every pixel
 	for (uint32_t y = 0; y < _finalImage->GetHeight(); y++) {
 		for (uint32_t x = 0; x < _finalImage->GetWidth(); x++) {
-			glm::vec2 coord{ (float)x / (float)_finalImage->GetWidth(), (float)y / (float)_finalImage->GetHeight()};
-			
+			glm::vec2 coord{ (float)x / (float)_finalImage->GetWidth(), (float)y / (float)_finalImage->GetHeight() };
+
 			coord = coord * 2.0f - 1.0f; //-1 to 1
 
 			_imageData[x + y * _finalImage->GetWidth()] = PerPixel(coord);
 		}
-
-
-		//_imageData[i] = Walnut::Random::UInt(); //ABGR
-		//_imageData[i] |= 0xff000000;
 	}
 
 	_finalImage->SetData(_imageData);
@@ -43,7 +39,7 @@ uint32_t Renderer::PerPixel(glm::vec2 coord)
 {
 	glm::vec3 rayDirection(coord.x, coord.y, -1.0f);
 	//rayDirection = glm::normalize(rayDirection);
-	
+
 	glm::vec3 rayOrigin(0.0f, 0.0f, -3.0f);
 
 	float radius = 0.5f;
@@ -73,25 +69,25 @@ uint32_t Renderer::PerPixel(glm::vec2 coord)
 		float sqrt = sqrtf(discriminant);
 		float bs = 2.0f * a;
 
-		if (discriminant > 0.0f) {
-			float firstSolution = (-b + sqrt) / bs;
-			float secondSolution = (-b - sqrt) / bs;
+		float t[2];
+		t[0] = (-b + sqrt) / bs;
+		t[1] = (-b - sqrt) / bs;
 
-			uint8_t g = (secondSolution * 255.0f);
-			return 0xff000000 | (g << 8);
+		for (int i = 0; i < 2; i++) {
+			glm::vec3 hitPos = rayOrigin + rayDirection * t[i];
+			glm::vec3 normal = hitPos - glm::vec3(0.0f);
+			normal = glm::normalize(normal);
+
+			uint8_t g = (hitPos.z * 255.0f);
+			uint8_t r = (normal.x * 255.0f);
+			return 0xff000000 | (g << 8) | r;
 		}
-		else {
-			float firstSolution = (-b + sqrt) / 2.0f * a;
 
-		}
-
-		return 0xffff00ff;
 	}
-	//less than 0 means there is no solution (i.e. no hit with sphere).
-	else {
+	else
+	{
 		return 0x00000000;
 	}
 
-	//return 0xff000000 | (g << 8) | r;
-	//return 0xffff00ff;
+	return 0xffff00ff;
 }
