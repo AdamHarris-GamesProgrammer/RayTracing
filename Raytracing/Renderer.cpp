@@ -60,12 +60,31 @@ uint32_t Renderer::PerPixel(glm::vec2 coord)
 	float b = 2.0f * glm::dot(rayOrigin, rayDirection);
 	float c = glm::dot(rayOrigin, rayOrigin) - radius * radius;
 
+	//Full quadratic formula
+	//-b +- sqrt(b^ - 4ac)
+	//		2a
+
 	//Quadratic formula discriminant
 	//b^2 - 4ac
 	float discriminant = b * b - 4.0f * a * c;
 
 	//greater than 0 means there is atleast 1 solution
 	if (discriminant >= 0.0f) {
+		float sqrt = sqrtf(discriminant);
+		float bs = 2.0f * a;
+
+		if (discriminant > 0.0f) {
+			float firstSolution = (-b + sqrt) / bs;
+			float secondSolution = (-b - sqrt) / bs;
+
+			uint8_t g = (secondSolution * 255.0f);
+			return 0xff000000 | (g << 8);
+		}
+		else {
+			float firstSolution = (-b + sqrt) / 2.0f * a;
+
+		}
+
 		return 0xffff00ff;
 	}
 	//less than 0 means there is no solution (i.e. no hit with sphere).
@@ -73,6 +92,6 @@ uint32_t Renderer::PerPixel(glm::vec2 coord)
 		return 0x00000000;
 	}
 
-	return 0xff000000 | (g << 8) | r;
+	//return 0xff000000 | (g << 8) | r;
 	//return 0xffff00ff;
 }
