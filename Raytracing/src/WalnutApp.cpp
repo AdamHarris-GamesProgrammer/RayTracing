@@ -8,13 +8,28 @@
 #include "../Renderer.h"
 #include "../Camera.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
+
+
 using namespace Walnut;
 
 class ExampleLayer : public Walnut::Layer
 {
 public:
 	ExampleLayer() : _camera(45.0f, 0.1f, 100.0f) {
+		Sphere s1;
+		s1.pos = glm::vec3{ 0.0f };
+		s1.radius = 0.5f;
+		s1.albedo = glm::vec4(1.0f, 0.2f, 0.2f, 1.0f);
 
+		Sphere s2;
+		s2.pos = glm::vec3{ 0.3f, 0.0f, -5.0f };
+		s2.radius = 5.0f;
+		s2.albedo = glm::vec4(0.4f, 1.0f, 0.4f, 1.0f);
+
+		_scene.spheres.emplace_back(s1);
+		_scene.spheres.emplace_back(s2);
 	}
 
 	virtual void OnUpdate(float ts) override {
@@ -27,17 +42,20 @@ public:
 		ImGui::Begin("Settings");
 		ImGui::Text("Last render: %.3fms", _lastRenderTime);
 
-		glm::vec3 lightDir = _renderer.GetLightDir();
-		float ld[3]{ lightDir.x, lightDir.y, lightDir.z };
-		
+		ImGui::End();
 
-		ImGui::SliderFloat3("Light Direction", ld, -1.0f, 1.0f, "%.3f", 1.f);
+		ImGui::Begin("Scene");
 
-		lightDir.x = ld[0];
-		lightDir.y = ld[1];
-		lightDir.z = ld[2];
+		for (size_t i = 0; i < _scene.spheres.size(); i++) {
+			ImGui::PushID(i);
 
-		_renderer.SetLightDir(lightDir);
+			Sphere& sphere = _scene.spheres[i];
+			ImGui::DragFloat3("Position", glm::value_ptr(sphere.pos), 0.1f);
+			ImGui::ColorEdit4("Albedo", glm::value_ptr(sphere.albedo), 0.1f);
+			ImGui::DragFloat("Radius", &sphere.radius, 0.1f);
+
+			ImGui::PopID();
+		}
 
 		ImGui::End();
 
@@ -63,13 +81,9 @@ public:
 	void Render() {
 		Timer timer;
 
-		//renderer resize
-
-		//renderer render
-
 		_camera.OnResize(_viewportWidth, _viewportHeight);
 		_renderer.OnResize(_viewportWidth, _viewportHeight);
-		_renderer.Render(_camera);
+		_renderer.Render(_scene ,_camera);
 
 		_lastRenderTime = timer.ElapsedMillis();
 	}
@@ -80,6 +94,7 @@ private:
 
 	Renderer _renderer;
 	Camera _camera;
+	Scene _scene;
 
 	float _lastRenderTime = 0.0f;
 };

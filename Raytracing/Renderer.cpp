@@ -34,7 +34,7 @@ void Renderer::OnResize(uint32_t width, uint32_t height)
 	_imageData = new uint32_t[width * height];
 }
 
-void Renderer::Render(const Camera& camera)
+void Renderer::Render(const Scene& scene, const Camera& camera)
 {
 	const glm::vec3& rayOrigin = camera.GetPosition();
 
@@ -48,7 +48,7 @@ void Renderer::Render(const Camera& camera)
 
 			ray.direction = camera.GetRayDirections()[x + y * _finalImage->GetWidth()];
 
-			glm::vec4 color = TraceRay(ray);
+			glm::vec4 color = TraceRay(scene, ray);
 
 			color = glm::clamp(color, glm::vec4(0.0f), glm::vec4(1.0f));
 
@@ -59,14 +59,12 @@ void Renderer::Render(const Camera& camera)
 	_finalImage->SetData(_imageData);
 }
 
-glm::vec4 Renderer::TraceRay(const Ray& ray)
+glm::vec4 Renderer::TraceRay(const Scene& scene, const Ray& ray)
 {
-	//glm::vec3 rayDirection(coord.x, coord.y, -1.0f);
-	//rayDirection = glm::normalize(rayDirection);
-
 	//glm::vec3 rayOrigin(0.0f, 0.0f, 1.0f);
 
-	float radius = 0.5f;
+	if(scene.spheres.size() == 0.0f)
+		return glm::vec4(0.5, 0.7, 0.9, 1);
 
 	//Raytrace equation
 	// A = ray origin
@@ -75,32 +73,50 @@ glm::vec4 Renderer::TraceRay(const Ray& ray)
 	// T = hit distance
 	//(bx^2 + by^2 + bz^2)t^2 + (2(axbx + ayby + azbz))t + (ax^2 + ay^2  + az^2- r^2) = 0
 
-	//quadratic variables
-	float a = glm::dot(ray.direction, ray.direction);
-	float b = 2.0f * glm::dot(ray.origin, ray.direction);
-	float c = glm::dot(ray.origin, ray.origin) - radius * radius;
+	float lowestTDistance = std::numeric_limits<float>::max();
+	const Sphere* closestSphere = nullptr;
 
-	//Full quadratic formula
-	//-b +- sqrt(b^ - 4ac)
-	//		2a
+	for (const Sphere& sphere : scene.spheres) {
+		//quadratic variables
+		glm::vec3 origin = ray.origin - sphere.pos;
 
-	//Quadratic formula discriminant
-	//b^2 - 4ac
-	float discriminant = b * b - 4.0f * a * c;
+		float a = glm::dot(ray.direction, ray.direction);
+		float b = 2.0f * glm::dot(origin, ray.direction);
+		float c = glm::dot(origin, origin) - sphere.radius * sphere.radius;
 
+		//Full quadratic formula
+		//-b +- sqrt(b^ - 4ac)
+		//		2a
 
-	//(-b +- sqrt(discriminant)) / 2a
+		//Quadratic formula discriminant
+		//b^2 - 4ac
+		float discriminant = b * b - 4.0f * a * c;
 
-	//less than zero is black
-	if (discriminant < 0.0f) {
+		//(-b +- sqrt(discriminant)) / 2a
+
+		//less than zero is black
+		if (discriminant < 0.0f) {
+			continue;
+		}
+
+		//Gets the t which will always be closest to the camera
+		float closestT = (-b - glm::sqrt(discriminant)) / (2.0f * a);
+
+		if (closestT < lowestTDistance) {
+			lowestTDistance = closestT;
+			closestSphere = &sphere;
+		}
+	}
+
+	//const Sphere& sphere = scene.spheres[0];
+
+	if (closestSphere == nullptr) {
 		return glm::vec4(0.5, 0.7, 0.9, 1);
 	}
 
-	//Two quadratic solutions
-	float t0 = (-b + glm::sqrt(discriminant)) / (2.0f * a);
-	float t1 = (-b - glm::sqrt(discriminant)) / (2.0f * a);
-
-	glm::vec3 h1 = ray.origin + ray.direction * t1;
+	
+	glm::vec3 origin = ray.origin - closestSphere->pos;
+	glm::vec3 h1 = origin + ray.direction * lowestTDistance;
 
 	glm::vec3 normal = glm::normalize(h1);
 
@@ -108,8 +124,8 @@ glm::vec4 Renderer::TraceRay(const Ray& ray)
 
 	float d = glm::max(glm::dot(normal, -lightDir), 0.0f); // == cos(angle)
 
-	glm::vec3 spherecolor(1, 0, 1);
+	glm::vec4 spherecolor = closestSphere->albedo;
 	spherecolor *= d;
 
-	return glm::vec4(spherecolor, 1.0f);
+	return glm::vec4(spherecolor);
 }
