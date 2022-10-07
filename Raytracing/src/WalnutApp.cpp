@@ -21,12 +21,12 @@ public:
 		Sphere s1;
 		s1.pos = glm::vec3{ 0.0f };
 		s1.radius = 0.5f;
-		s1.albedo = glm::vec4(1.0f, 0.2f, 0.2f, 1.0f);
+		s1.albedo = glm::vec3(1.0f, 0.2f, 0.2f);
 
 		Sphere s2;
 		s2.pos = glm::vec3{ 0.3f, 0.0f, -5.0f };
-		s2.radius = 5.0f;
-		s2.albedo = glm::vec4(0.4f, 1.0f, 0.4f, 1.0f);
+		s2.radius = 1.0f;
+		s2.albedo = glm::vec3(0.4f, 1.0f, 0.4f);
 
 		_scene.spheres.emplace_back(s1);
 		_scene.spheres.emplace_back(s2);
