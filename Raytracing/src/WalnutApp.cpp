@@ -19,26 +19,7 @@ class ExampleLayer : public Walnut::Layer
 {
 public:
 	ExampleLayer() : _camera(45.0f, 0.1f, 100.0f) {
-		//Sphere s1;
-		//s1.pos = glm::vec3{ 0.0f,0.0f,0.0f };
-		//s1.radius = 0.5f;
-		//
-		//Sphere s2;
-		//s2.pos = glm::vec3{ 0.0f, -101.0f, 0.0f };
-		//s2.radius = 100.0f;
-		//
-		//_scene.spheres.emplace_back(s1);
-		//_scene.spheres.emplace_back(s2);
-		//
-		//Material& m1 = _scene.materials.emplace_back();
-		//m1.albedo = glm::vec3(0.15f, 1.0f, 0.0f);
-		//m1.roughness = 1.0f;
-		//m1.metallic = 0.0f;
-		//
-		//Material& m2 = _scene.materials.emplace_back();
-		//m2.albedo = glm::vec3(0.2f, 0.3f, 1.0f);
-		//m2.roughness = 1.0f;
-		//m2.metallic = 0.0f;
+
 
 	}
 
@@ -56,7 +37,7 @@ public:
 
 		ImGui::Begin("Scene");
 
-		static char sceneName[128] = "HelloWorld";
+		static char sceneName[128] = "NewScene";
 		ImGui::InputText("Scene Name", sceneName, IM_ARRAYSIZE(sceneName));
 		if (ImGui::Button("Save Scene")) {
 			SaveScene(sceneName);
@@ -66,9 +47,20 @@ public:
 			LoadScene(sceneName);
 		}
 
+		if (ImGui::Button("Add Sphere")) {
+			_scene.spheres.emplace_back();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Add Material")) {
+			_scene.materials.emplace_back();
+		}
+
+		ImGui::Separator();
 
 		ImGui::Text("Spheres");
 
+		
+		int indexToDelete = -1;
 		for (size_t i = 0; i < _scene.spheres.size(); i++) {
 			ImGui::PushID(i);
 
@@ -76,10 +68,17 @@ public:
 			ImGui::DragFloat3("Position", glm::value_ptr(sphere.pos), 0.1f);
 			ImGui::DragFloat("Radius", &sphere.radius, 0.1f);
 			ImGui::SliderInt("Material", &sphere.materialIndex, 0, (int)_scene.materials.size() - 1);
-
+			if (ImGui::Button("Delete Sphere")) {
+				indexToDelete = 0;
+			}
 			ImGui::Separator();
 
 			ImGui::PopID();
+		}
+
+		if (indexToDelete != -1) {
+			_scene.spheres.erase(_scene.spheres.begin() + indexToDelete);
+			indexToDelete = -1;
 		}
 
 		ImGui::Text("Materials");
@@ -93,9 +92,17 @@ public:
 			ImGui::DragFloat("Roughness", &mat.roughness, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Metallic", &mat.metallic, 0.01f, 0.0f, 1.0f);
 
+			if (ImGui::Button("Delete Material")) {
+				indexToDelete = i;
+			}
+
 			ImGui::Separator();
 
 			ImGui::PopID();
+		}
+
+		if (indexToDelete != -1) {
+			_scene.materials.erase(_scene.materials.begin() + indexToDelete);
 		}
 
 
