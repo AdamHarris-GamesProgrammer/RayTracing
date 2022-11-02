@@ -18,6 +18,8 @@ struct Sphere {
 
 
 struct Scene {
+	std::string name;
+
 	std::vector<Sphere> spheres;
 	std::vector<Material> materials;
 };
