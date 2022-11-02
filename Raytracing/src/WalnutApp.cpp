@@ -19,17 +19,26 @@ class ExampleLayer : public Walnut::Layer
 public:
 	ExampleLayer() : _camera(45.0f, 0.1f, 100.0f) {
 		Sphere s1;
-		s1.pos = glm::vec3{ 0.0f };
+		s1.pos = glm::vec3{ 0.0f,0.0f,0.0f };
 		s1.radius = 0.5f;
-		s1.albedo = glm::vec3(1.0f, 0.2f, 0.2f);
 
 		Sphere s2;
-		s2.pos = glm::vec3{ 0.3f, 0.0f, -5.0f };
-		s2.radius = 1.0f;
-		s2.albedo = glm::vec3(0.4f, 1.0f, 0.4f);
+		s2.pos = glm::vec3{ 0.0f, -101.0f, 0.0f };
+		s2.radius = 100.0f;
 
 		_scene.spheres.emplace_back(s1);
 		_scene.spheres.emplace_back(s2);
+
+		Material& m1 = _scene.materials.emplace_back();
+		m1.albedo = glm::vec3(0.15f, 1.0f, 0.0f);
+		m1.roughness = 1.0f;
+		m1.metallic = 0.0f;
+
+		Material& m2 = _scene.materials.emplace_back();
+		m2.albedo = glm::vec3(0.2f, 0.3f, 1.0f);
+		m2.roughness = 1.0f;
+		m2.metallic = 0.0f;
+
 	}
 
 	virtual void OnUpdate(float ts) override {
@@ -46,16 +55,38 @@ public:
 
 		ImGui::Begin("Scene");
 
+		ImGui::Text("Spheres");
+
 		for (size_t i = 0; i < _scene.spheres.size(); i++) {
 			ImGui::PushID(i);
 
 			Sphere& sphere = _scene.spheres[i];
 			ImGui::DragFloat3("Position", glm::value_ptr(sphere.pos), 0.1f);
-			ImGui::ColorEdit4("Albedo", glm::value_ptr(sphere.albedo), 0.1f);
 			ImGui::DragFloat("Radius", &sphere.radius, 0.1f);
+			ImGui::SliderInt("Material", &sphere.materialIndex, 0, (int)_scene.materials.size() - 1);
+
+			ImGui::Separator();
 
 			ImGui::PopID();
 		}
+
+		ImGui::Text("Materials");
+
+		for (size_t i = 0; i < _scene.materials.size(); i++) {
+			ImGui::PushID(i);
+
+			Material& mat = _scene.materials[i];
+
+			ImGui::ColorEdit3("Albedo", glm::value_ptr(mat.albedo), 0.1f);
+			ImGui::DragFloat("Roughness", &mat.roughness, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Metallic", &mat.metallic, 0.01f, 0.0f, 1.0f);
+
+			ImGui::Separator();
+
+			ImGui::PopID();
+		}
+
+
 
 		ImGui::End();
 
