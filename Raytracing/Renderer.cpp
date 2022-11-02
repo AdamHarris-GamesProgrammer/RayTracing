@@ -3,6 +3,8 @@
 
 #include "Camera.h"
 
+#include <glm/gtx/norm.hpp>
+
 namespace Utils {
 	static uint32_t ConvertToRGBA(const glm::vec4& color) {
 		uint8_t r = (uint8_t)(color.r * 255.0f);
@@ -142,19 +144,11 @@ HitPayload Renderer::TraceRay(const Ray& ray)
 		//quadratic variables
 		glm::vec3 origin = ray.origin - sphere.pos;
 
-		float a = glm::dot(ray.direction, ray.direction);
-		float b = 2.0f * glm::dot(origin, ray.direction);
-		float c = glm::dot(origin, origin) - sphere.radius * sphere.radius;
+		float a = glm::length2(ray.direction);
+		float half_b = glm::dot(origin, ray.direction);
+		float c = glm::length2(origin) - sphere.radius * sphere.radius;
+		float discriminant = half_b * half_b - a * c;
 
-		//Full quadratic formula
-		//-b +- sqrt(b^ - 4ac)
-		//		2a
-
-		//Quadratic formula discriminant
-		//b^2 - 4ac
-		float discriminant = b * b - 4.0f * a * c;
-
-		//(-b +- sqrt(discriminant)) / 2a
 
 		//less than zero is black
 		if (discriminant < 0.0f) {
@@ -162,7 +156,7 @@ HitPayload Renderer::TraceRay(const Ray& ray)
 		}
 
 		//Gets the t which will always be closest to the camera
-		float closestT = (-b - glm::sqrt(discriminant)) / (2.0f * a);
+		float closestT = (-half_b - glm::sqrt(discriminant)) / a;
 
 		if (closestT > 0.0f && closestT < lowestTDistance) {
 			lowestTDistance = closestT;
