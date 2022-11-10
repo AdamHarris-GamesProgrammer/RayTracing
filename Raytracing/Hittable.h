@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glm/glm.hpp"
+#include "Ray.h"
 
 struct HitPayload {
 	float HitDistance;

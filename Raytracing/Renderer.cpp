@@ -34,6 +34,9 @@ void Renderer::OnResize(uint32_t width, uint32_t height)
 
 	delete[] _imageData;
 	_imageData = new uint32_t[width * height];
+
+	delete[] _accumulationData;
+	_accumulationData = new glm::vec4[width * height];
 }
 
 void Renderer::Render(const Scene& scene, const Camera& camera)
@@ -43,16 +46,32 @@ void Renderer::Render(const Scene& scene, const Camera& camera)
 
 	const glm::vec3& rayOrigin = camera.GetPosition();
 
+	if (_frameIndex == 1) {
+		memset(_accumulationData, 0, _finalImage->GetWidth() * _finalImage->GetHeight() * sizeof(glm::vec4));
+	}
+
 	//Render every pixel
 	for (uint32_t y = 0; y < _finalImage->GetHeight(); y++) {
 		for (uint32_t x = 0; x < _finalImage->GetWidth(); x++) {
 			glm::vec4 color = PerPixel(x,y);
-			color = glm::clamp(color, glm::vec4(0.0f), glm::vec4(1.0f));
-			_imageData[x + y * _finalImage->GetWidth()] = Utils::ConvertToRGBA(color);
+			_accumulationData[x + y * _finalImage->GetWidth()] += color;
+
+			glm::vec4 accumulatedColor = _accumulationData[x + y * _finalImage->GetWidth()];
+			accumulatedColor /= (float)_frameIndex;
+
+			accumulatedColor = glm::clamp(accumulatedColor, glm::vec4(0.0f), glm::vec4(1.0f));
+			_imageData[x + y * _finalImage->GetWidth()] = Utils::ConvertToRGBA(accumulatedColor);
 		}
 	}
 
 	_finalImage->SetData(_imageData);
+
+	if (_settings.Accumulate) {
+		_frameIndex++;
+	}
+	else{
+		_frameIndex = 1;
+	}
 }
 
 HitPayload Renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex)

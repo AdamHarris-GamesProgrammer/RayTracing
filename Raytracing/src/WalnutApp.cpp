@@ -24,13 +24,26 @@ public:
 	}
 
 	virtual void OnUpdate(float ts) override {
-		_camera.OnUpdate(ts);
+		if (_camera.OnUpdate(ts)) {
+			_renderer.ResetFrameIndex();
+		}
 	}
 
 
 	virtual void OnUIRender() override
 	{
 		ImGui::Begin("Settings");
+
+		if (ImGui::Button("Render")) {
+			Render();
+		}
+
+		ImGui::Checkbox("Accumulate", &_renderer.GetSettings().Accumulate);
+
+		if (ImGui::Button("Reset")) {
+			_renderer.ResetFrameIndex();
+		}
+
 		ImGui::Text("Last render: %.3fms", _lastRenderTime);
 
 		ImGui::End();
@@ -318,7 +331,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 
 	std::shared_ptr<ExampleLayer> layer = std::make_shared<ExampleLayer>();
 
-	layer->LoadScene("SampleScene");
+	layer->LoadScene("NewScene");
 
 	app->PushLayer(layer);
 	app->SetMenubarCallback([app]()

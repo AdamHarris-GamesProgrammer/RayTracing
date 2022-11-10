@@ -1,0 +1,73 @@
+Scene (
+	scenename: NewScene
+)
+sphere (
+	position: 2.1, 0.5, 0
+	radius: 1.1
+	materialIndex: 1
+)
+sphere (
+	position: -3, 0.5, 0
+	radius: 1.4
+	materialIndex: 5
+)
+sphere (
+	position: 0, -101, 0
+	radius: 100
+	materialIndex: 1
+)
+sphere (
+	position: 3.5, 2, -1.1
+	radius: 0.5
+	materialIndex: 2
+)
+sphere (
+	position: -2.5, 2.6, 1.7
+	radius: 0.5
+	materialIndex: 0
+)
+sphere (
+	position: -0.6, -0.3, 0
+	radius: 0.5
+	materialIndex: 4
+)
+sphere (
+	position: 3.4, 3.6, 0
+	radius: 1.2
+	materialIndex: 4
+)
+sphere (
+	position: 0, 3.2, 0
+	radius: 2
+	materialIndex: 0
+)
+material (
+	albedo: 0.278251, 0.0106761, 1
+	roughness: 0.82
+	metallic: 0
+)
+material (
+	albedo: 0.2, 0.3, 1
+	roughness: 0.53
+	metallic: 0
+)
+material (
+	albedo: 1, 0.131673, 0.131673
+	roughness: 0.09
+	metallic: 0
+)
+material (
+	albedo: 1, 1, 1
+	roughness: 0.46
+	metallic: 0
+)
+material (
+	albedo: 0.342701, 0.782918, 0.515028
+	roughness: 1
+	metallic: 0
+)
+material (
+	albedo: 0.380392, 1, 0
+	roughness: 0.95
+	metallic: 0
+)

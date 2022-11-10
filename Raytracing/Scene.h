@@ -14,7 +14,7 @@ struct Material {
 	float metallic = 0.0f;
 };
 
-class Sphere : public Hittable {
+struct Sphere {
 public:
 	glm::vec3 pos = glm::vec3(0.0f);
 	float radius = 0.5f;
@@ -23,7 +23,7 @@ public:
 
 
 	// Inherited via Hittable
-	virtual bool Hit(const Ray& r, float tMin, float tMax, HitPayload& rec) const override;
+	//virtual bool Hit(const Ray& r, float tMin, float tMax, HitPayload& rec) const override;
 
 };
 
