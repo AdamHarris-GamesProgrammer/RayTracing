@@ -5,6 +5,12 @@
 
 #include <glm/gtx/norm.hpp>
 
+#include <execution>
+
+#include <iostream>
+
+//Before any changes 50ms
+
 namespace Utils {
 	static uint32_t ConvertToRGBA(const glm::vec4& color) {
 		uint8_t r = (uint8_t)(color.r * 255.0f);
@@ -37,6 +43,17 @@ void Renderer::OnResize(uint32_t width, uint32_t height)
 
 	delete[] _accumulationData;
 	_accumulationData = new glm::vec4[width * height];
+
+	_imageHorizontalIterator.resize(width);
+	_imageVerticalIterator.resize(height);
+
+	for (uint32_t i = 0; i < width; ++i) {
+		_imageHorizontalIterator[i] = i;
+	}
+
+	for (uint32_t i = 0; i < height; ++i) {
+		_imageVerticalIterator[i] = i;
+	}
 }
 
 void Renderer::Render(const Scene& scene, const Camera& camera)
@@ -50,6 +67,26 @@ void Renderer::Render(const Scene& scene, const Camera& camera)
 		memset(_accumulationData, 0, _finalImage->GetWidth() * _finalImage->GetHeight() * sizeof(glm::vec4));
 	}
 
+#define MT 1
+
+#if MT
+	std::for_each(std::execution::par, _imageVerticalIterator.begin(), _imageVerticalIterator.end(), [this](uint32_t y)
+		{
+			std::for_each(std::execution::par, _imageHorizontalIterator.begin(), _imageHorizontalIterator.end(), [this, y](uint32_t x)
+				{
+					glm::vec4 color = PerPixel(x, y);
+					_accumulationData[x + y * _finalImage->GetWidth()] += color;
+
+					glm::vec4 accumulatedColor = _accumulationData[x + y * _finalImage->GetWidth()];
+					accumulatedColor /= (float)_frameIndex;
+
+					accumulatedColor = glm::clamp(accumulatedColor, glm::vec4(0.0f), glm::vec4(1.0f));
+					_imageData[x + y * _finalImage->GetWidth()] = Utils::ConvertToRGBA(accumulatedColor);
+				});
+		}
+	);
+
+#else
 	//Render every pixel
 	for (uint32_t y = 0; y < _finalImage->GetHeight(); y++) {
 		for (uint32_t x = 0; x < _finalImage->GetWidth(); x++) {
@@ -63,6 +100,8 @@ void Renderer::Render(const Scene& scene, const Camera& camera)
 			_imageData[x + y * _finalImage->GetWidth()] = Utils::ConvertToRGBA(accumulatedColor);
 		}
 	}
+
+#endif
 
 	_finalImage->SetData(_imageData);
 
@@ -137,7 +176,7 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
 
 		ray.origin = payload.WorldPosition + payload.WorldNormal * 0.1f;
 		ray.direction = glm::reflect(ray.direction, 
-			payload.WorldNormal + mat.roughness * Walnut::Random::Vec3(-0.5f,0.5f));
+			payload.WorldNormal + mat.roughness * Walnut::Random::PseudoVec3(-0.5f,0.5f));
 	}
 
 

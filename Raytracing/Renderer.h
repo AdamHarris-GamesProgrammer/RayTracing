@@ -48,6 +48,8 @@ private:
 	uint32_t* _imageData = nullptr;
 	std::shared_ptr<Walnut::Image> _finalImage;
 
+	std::vector<uint32_t> _imageHorizontalIterator, _imageVerticalIterator;
+
 	Settings _settings;
 
 	const Scene* _activeScene;
